@@ -231,7 +231,7 @@ fk.ai_nullification.indulgence = function(self, card, to, from, positive)
 end
 
 fk.ai_use_play["collateral"] = function(self, card)
-  local max = (card.skill:getMaxTargetNum(self.player, card) - 1) * 2
+  local max = card.skill:getMaxTargetNum(self.player, card) * 2
   self:sort(self.enemies)
   for _, p in ipairs(self.enemies) do
     if #self.use_tos < max and card.skill:targetFilter(p.id, {}, {}, card) then

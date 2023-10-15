@@ -913,19 +913,20 @@ end
 ---@param room Room
 ---@return table
 local function aliveRoles(room)
-  fk.alive_roles = {
+  local alive_roles = {
     lord = 0,
     loyalist = 0,
     rebel = 0,
     renegade = 0
   }
   for _, ap in ipairs(room.players) do
-    fk.alive_roles[ap.role] = 0
+    alive_roles[ap.role] = 0
   end
   for _, ap in ipairs(room.alive_players) do
-    fk.alive_roles[ap.role] = fk.alive_roles[ap.role] + 1
+    alive_roles[ap.role] = alive_roles[ap.role] + 1
   end
-  return fk.alive_roles
+  room:setTag("alive_roles",alive_roles)
+  return alive_roles
 end
 
 fk.ai_objective_level["aaa_role_mode"] = function(self, to)--身份局的目标敌友值定义
@@ -1020,7 +1021,6 @@ end
 
 ---更新场上敌友
 function SmartAI:updatePlayers()
-  self.role = self.player.role
   self.enemies = {}
   self.friends = {}
   self.friends_noself = {}
@@ -1086,6 +1086,7 @@ function SmartAI:initialize(player)
   AI.initialize(self, player)
   self.cb_table = smart_cb
   self.player = player
+  self.role = player.role
   if self.room:getTag("ai_role") == nil then
     local ai_role = {}
     local role_value = {}
@@ -1138,7 +1139,7 @@ local function updateIntention(player, to, intention)
     end
     local aps = player.room.alive_players
     table.sort(aps, compare_func)
-    player.explicit_renegade = false
+    to.ai.explicit_renegade = false
     local ars = aliveRoles(player.room)
     local rebel, renegade, loyalist = 0, 0, 0
     for _, ap in ipairs(aps) do
@@ -1150,7 +1151,7 @@ local function updateIntention(player, to, intention)
       elseif role_value[ap.id].renegade > 50 and ars.renegade > renegade then
         renegade = renegade + 1
         ai_role[ap.id] = "renegade"
-        player.explicit_renegade = role_value[ap.id].renegade > 100
+        to.ai.explicit_renegade = role_value[ap.id].renegade > 100
       elseif role_value[ap.id].rebel < -50 and ars.loyalist > loyalist then
         loyalist = loyalist + 1
         ai_role[ap.id] = "loyalist"
@@ -1171,9 +1172,6 @@ local function updateIntention(player, to, intention)
   player.room:setTag("role_value", role_value)
 end
 
---[[
-function SmartAI:filterEvent(event, player, data)
-end--]]
 --增加全局触发技，这样就不用在gamelogic.lua里增加接口了
 local filterEvent = fk.CreateTriggerSkill {
   name = "filter_event",
@@ -1203,8 +1201,7 @@ local filterEvent = fk.CreateTriggerSkill {
         end
       elseif type(callback) == "number" then
         for _, p in ipairs(TargetGroup:getRealTargets(data.tos)) do
-          p = room:getPlayerById(p)
-          updateIntention(room:getPlayerById(data.from), p, callback)
+          updateIntention(room:getPlayerById(data.from), room:getPlayerById(p), callback)
         end
       end
     elseif event == fk.CardUsing then

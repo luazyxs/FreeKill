@@ -195,7 +195,24 @@ function fk.CreateActiveSkill(spec)
     end
   end
   if spec.card_filter then skill.cardFilter = spec.card_filter end
-  if spec.target_filter then skill.targetFilter = spec.target_filter end
+  if spec.target_filter then
+      skill.targetFilter = function(self, to_select, selected, ids, card)
+        if card and Self:isProhibited(Fk:currentRoom():getPlayerById(to_select), card) then
+          return false
+        end
+        local from = Fk:currentRoom():getPlayerById(Self.id)
+        if from.ai_data and type(from.ai_data.jsonData) == "string" then
+          local extra_data = json.decode(from.ai_data.jsonData)[5]
+          if extra_data then
+            if extra_data.exclusive_targets and not table.contains(extra_data.exclusive_targets, to_select)
+            or extra_data.must_targets and #extra_data.must_targets > #selected and not table.contains(extra_data.must_targets, to_select) then
+              return false
+            end
+          end
+        end
+        return spec.target_filter(self, to_select, selected, ids, card)
+      end
+  end
   if spec.mod_target_filter then skill.modTargetFilter = spec.mod_target_filter end
   if spec.feasible then
     -- print(spec.name .. ": feasible is deprecated. Use target_num and card_num instead.")

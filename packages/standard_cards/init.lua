@@ -337,18 +337,21 @@ local collateralSkill = fk.CreateActiveSkill{
     return user ~= to_select and player:getEquipment(Card.SubtypeWeapon)
   end,
   target_filter = function(self, to_select, selected, _, card)
-    if #selected >= (self:getMaxTargetNum(Self, card) - 1) * 2 then
-      return false--修改借刀的目标选择
+    if #selected >= self:getMaxTargetNum(Self, card) * 2 then
+      return false --修改借刀的目标选择
     elseif #selected % 2 == 0 then
       return self:modTargetFilter(to_select, selected, Self.id, card)
-    else
+    elseif self:modTargetFilter(selected[#selected], selected, Self.id, card) then
       local player = Fk:currentRoom():getPlayerById(to_select)
       local from = Fk:currentRoom():getPlayerById(selected[#selected])
-      return self:modTargetFilter(selected[#selected], selected, Self.id, card)
-      and from:inMyAttackRange(player) and not from:isProhibited(player, Fk:cloneCard("slash"))
+      return from:inMyAttackRange(player) and not from:isProhibited(player, Fk:cloneCard("slash"))
     end
   end,
-  target_num = 2,
+  feasible = function(self, selected, selected_cards, player, card)
+    return #selected % 2 == 0 and #selected >= self:getMinTargetNum() * 2 and #selected <= self:getMaxTargetNum(player, card) * 2
+    and #selected_cards >= self:getMinCardNum() and #selected_cards <= self:getMaxCardNum()
+  end,
+  target_num = 1,
   on_use = function(self, room, cardUseEvent)
     local tos = {}
     local exclusive = {}
