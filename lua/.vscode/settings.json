@@ -1,0 +1,36 @@
+{
+  "editor.renderLineHighlight": "none",
+  "Lua.diagnostics.disable": [
+    "undefined-field",
+    "inject-field",
+    "return-type-mismatch",
+    "cast-local-type",
+    "param-type-mismatch",
+    "invisible",
+    "missing-fields",
+    "assign-type-mismatch",
+    "undefined-doc-name",
+    "duplicate-set-field"
+  ],
+  "Lua.diagnostics.globals": [
+    "GameRule",
+    "AuxSkills",
+    "ipairs",
+    "table",
+    "type",
+    "assert",
+    "coroutine",
+    "setmetatable",
+    "string",
+    "pairs",
+    "error",
+    "rawget",
+    "math",
+    "tonumber",
+    "debug",
+    "print",
+    "SmartAI",
+    "require",
+    "tostring"
+  ]
+}
